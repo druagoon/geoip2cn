@@ -1,0 +1,36 @@
+[project]
+name = "geoip2city"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = ["maxminddb>=2.8.2", "requests>=2.32.4"]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "isort[colors]>=6.0.1",
+    "pre-commit>=4.2.0",
+    "ruff>=0.12.8",
+]
+
+[tool.black]
+color = true
+line-length = 120
+target-version = ["py312"]
+#skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+force_grid_wrap = 2
+case_sensitive = true
+order_by_type = false
+combine_as_imports = true
+line_length = 120
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]

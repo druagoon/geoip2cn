@@ -1,0 +1,38 @@
+name: GeoIP2CN - IPinfo Lite Database Extractor
+
+permissions:
+  contents: write
+
+on:
+  repository_dispatch:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 1 * * *
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Initialize Python environment
+        run: make init
+      - name: Extracts IP networks
+        env:
+          IPINFO_TOKEN: ${{ secrets.IPINFO_TOKEN }}
+        run: |
+          make run
+          echo "TAG_NAME=$(date +"%Y.%m.%d")" >>$GITHUB_ENV
+      - name: Push to 'download' branch
+        run: |
+          cd data
+          git init
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git checkout -b download
+          git add .
+          git commit -m "${{ env.TAG_NAME }}"
+          git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+          git push -f origin download

@@ -106,6 +106,7 @@ class AsDomain:
 
 # Define the AS Domains
 AS_DOMAINS = (
+    AsDomain("10086.cn"),
     AsDomain("chinamobile.com"),
     AsDomain("chinaunicom.cn"),
     AsDomain("189.cn"),
@@ -131,6 +132,7 @@ AS_DOMAIN_KV = {v.domain: v for v in AS_DOMAINS}
 # Define the AS Name keywords and the regex pattern
 AS_NAME_KEYWORDS = [
     "Beijing",
+    "Tianjin",
     "Hebei",
     "Jiangsu",
     "Nanjing",
@@ -142,6 +144,7 @@ AS_NAME_KEYWORDS = [
     "Jinan",
     "Guizhou",
     "Guangdong",
+    "NINGXIA",
     "Yunnan",
     "Cloud Computing Corporation",
 ]

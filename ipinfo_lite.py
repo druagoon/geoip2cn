@@ -147,6 +147,7 @@ AS_NAME_KEYWORDS = [
     "NINGXIA",
     "Yunnan",
     "Cloud Computing Corporation",
+    "IDC",
 ]
 REGEX_AS_NAME = re.compile(
     rf"\b{'|'.join(re.escape(x) for x in AS_NAME_KEYWORDS)}\b",

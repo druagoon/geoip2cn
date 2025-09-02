@@ -136,8 +136,10 @@ AS_NAME_KEYWORDS = [
     "Hebei",
     "Jiangsu",
     "Nanjing",
+    "Anhui",
     "Sichuan",
     "SHAANXI",
+    "FUJIAN",
     "Xiamen",
     "Shandong",
     "Qingdao",
@@ -146,6 +148,7 @@ AS_NAME_KEYWORDS = [
     "Guangdong",
     "NINGXIA",
     "Yunnan",
+    "Qinghai",
     "Cloud Computing Corporation",
     "IDC",
 ]

@@ -98,7 +98,7 @@ db_logger = logging.getLogger("db")
 
 
 @dataclass
-class AsDomain:
+class ASDomain:
     domain: str
     is_filter: bool = True
     use_as_name: bool = False
@@ -106,23 +106,23 @@ class AsDomain:
 
 # Define the AS Domains
 AS_DOMAINS = (
-    AsDomain("10086.cn"),
-    AsDomain("chinamobile.com"),
-    AsDomain("chinaunicom.cn"),
-    AsDomain("189.cn"),
-    AsDomain("chinatelecom.cn", use_as_name=True),
-    AsDomain("chinatelecom.com.cn", use_as_name=True),
-    AsDomain("360.cn"),
-    AsDomain("360.net"),
-    AsDomain("baidu.com"),
-    AsDomain("qq.com"),
-    AsDomain("tencent.com"),
-    AsDomain("huawei.com"),
-    AsDomain("huaweicloud.com"),
-    AsDomain("alibabacloud.com"),
-    AsDomain("alibabagroup.com"),
-    AsDomain("bytedance.com"),
-    AsDomain("volcengine.com"),
+    ASDomain("10086.cn"),
+    ASDomain("chinamobile.com"),
+    ASDomain("chinaunicom.cn"),
+    ASDomain("189.cn"),
+    ASDomain("chinatelecom.cn", use_as_name=True),
+    ASDomain("chinatelecom.com.cn", use_as_name=True),
+    ASDomain("360.cn"),
+    ASDomain("360.net"),
+    ASDomain("baidu.com"),
+    ASDomain("qq.com"),
+    ASDomain("tencent.com"),
+    ASDomain("huawei.com"),
+    ASDomain("huaweicloud.com"),
+    ASDomain("alibabacloud.com"),
+    ASDomain("alibabagroup.com"),
+    ASDomain("bytedance.com"),
+    ASDomain("volcengine.com"),
 )
 
 

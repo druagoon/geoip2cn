@@ -69,8 +69,8 @@ Extracts Chinese IP networks and domain-specific IP zones from the IPInfo GeoIP 
 5. Output zone files will be saved under the `data/` directory:
    - `data/countries/ipv4/cn.zone`
    - `data/countries/ipv6/cn.zone`
-   - `data/domains/ipv4/aggregated.zone`
-   - `data/domains/ipv6/aggregated.zone`
+   - `data/aggregated/ipv4.zone`
+   - `data/aggregated/ipv6.zone`
 
 ## Customization
 

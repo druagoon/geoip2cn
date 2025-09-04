@@ -100,11 +100,11 @@ db_logger = logging.getLogger("db")
 @dataclass
 class ASDomain:
     domain: str
-    is_filter: bool = True
+    filter: bool = True
     use_as_name: bool = False
 
 
-# Define the AS Domains
+# Define the AS Domains denylist
 AS_DOMAINS = (
     ASDomain("10086.cn"),
     ASDomain("chinamobile.com"),
@@ -126,17 +126,19 @@ AS_DOMAINS = (
 )
 
 
-# Mapping of AS domains to AsDomain objects
+# Mapping of filtered AS domains to ASDomain objects
 AS_DOMAIN_KV = {v.domain: v for v in AS_DOMAINS}
 
-# Define the AS Name keywords and the regex pattern
+# Define the filtered AS Name keywords and the regex pattern
 AS_NAME_KEYWORDS = [
     "Beijing",
     "Tianjin",
     "Hebei",
     "Jiangsu",
     "Nanjing",
+    "Zhejiang",
     "Anhui",
+    "Henan",
     "Sichuan",
     "SHAANXI",
     "FUJIAN",
@@ -156,6 +158,9 @@ REGEX_AS_NAME = re.compile(
     rf"\b{'|'.join(re.escape(x) for x in AS_NAME_KEYWORDS)}\b",
     re.I,
 )
+
+# Define the ASN denylist
+ASN_DENYLIST = ("AS4811",)
 
 
 @dataclass
@@ -178,12 +183,16 @@ class IPInfo:
         """Check if the country is China."""
         return self.country_code == "CN"
 
-    def is_filter_domain(self) -> bool:
-        """Check if the AS domain is in the filter list."""
+    def is_deny_asn(self) -> bool:
+        """Check if the ASN is in the denylist."""
+        return self.asn.upper() in ASN_DENYLIST
+
+    def is_deny_domain(self) -> bool:
+        """Check if the AS domain is in the denylist."""
         if self.as_domain:
-            if (obj := AS_DOMAIN_KV.get(self.as_domain)) and obj.is_filter:
-                if obj.use_as_name:
-                    return bool(REGEX_AS_NAME.search(self.as_name))
+            if (obj := AS_DOMAIN_KV.get(self.as_domain)) and obj.filter:
+                if obj.use_as_name and self.as_name:
+                    return bool(REGEX_AS_NAME.search(self.as_name.replace("-", " ")))
                 return True
         return False
 
@@ -285,6 +294,7 @@ def extract_ip_networks(db_file: Path) -> None:
     logger.info(f"Extracting IP networks from {db_file}")
     countries = defaultdict(lambda: defaultdict(set))
     domains = defaultdict(lambda: defaultdict(set))
+    asns = defaultdict(lambda: defaultdict(set))
     with maxminddb.open_database(db_file) as reader:
         for network, record in reader:
             try:
@@ -296,7 +306,9 @@ def extract_ip_networks(db_file: Path) -> None:
                         continue
                     ipv = f"ipv{net.version}"
                     countries[ip.country_code.lower()][ipv].add(net)
-                    if ip.is_filter_domain():
+                    if ip.is_deny_asn():
+                        asns[ip.asn.upper()][ipv].add(net)
+                    if ip.is_deny_domain():
                         domains[ip.as_domain.lower()][ipv].add(net)
             except Exception:
                 continue
@@ -308,14 +320,19 @@ def extract_ip_networks(db_file: Path) -> None:
                     zone_file = DATA_DIR / "countries" / version / f"{c}.zone"
                     save_zone_file(zone_file, ipaddress.collapse_addresses(ip_networks[version]))
 
-            domain_aggregated_file = DATA_DIR / "domains" / version / "aggregated.zone"
-            ensure_file_dir_exists(domain_aggregated_file)
-            with open(domain_aggregated_file, "w") as af:
+            aggregated_zone = DATA_DIR / "aggregated" / f"{version}.zone"
+            ensure_file_dir_exists(aggregated_zone)
+            with open(aggregated_zone, "w") as agg:
                 for d, ip_networks in domains.items():
                     if version in ip_networks:
                         zone_file = DATA_DIR / "domains" / version / f"{d}.zone"
                         save_zone_file(zone_file, ipaddress.collapse_addresses(ip_networks[version]))
-                        shutil.copyfileobj(open(zone_file, "r"), af)
+                        shutil.copyfileobj(open(zone_file, "r"), agg)
+                for d, ip_networks in asns.items():
+                    if version in ip_networks:
+                        zone_file = DATA_DIR / "asn" / version / f"{d}.zone"
+                        save_zone_file(zone_file, ipaddress.collapse_addresses(ip_networks[version]))
+                        shutil.copyfileobj(open(zone_file, "r"), agg)
 
 
 def main():

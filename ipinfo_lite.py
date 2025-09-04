@@ -160,7 +160,10 @@ REGEX_AS_NAME = re.compile(
 )
 
 # Define the ASN denylist
-ASN_DENYLIST = ("AS4811",)
+ASN_DENYLIST = (
+    "AS4811",
+    "AS56005",
+)
 
 
 @dataclass

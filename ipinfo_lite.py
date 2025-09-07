@@ -162,7 +162,10 @@ REGEX_AS_NAME = re.compile(
 
 # Define the ASN denylist
 ASN_DENYLIST = (
+    "AS4134",
     "AS4811",
+    "AS4847",
+    "AS133774",
     "AS56005",
     # CDS Global Cloud
     "AS38353",

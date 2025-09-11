@@ -113,6 +113,7 @@ AS_DOMAINS = (
     ASDomain("ct1000.com"),
     ASDomain("chinatelecom.cn", use_as_name=True),
     ASDomain("chinatelecom.com.cn", use_as_name=True),
+    ASDomain("zjtelecom.com.cn"),
     ASDomain("360.cn"),
     ASDomain("360.net"),
     ASDomain("baidu.com"),

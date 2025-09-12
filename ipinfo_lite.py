@@ -141,6 +141,7 @@ AS_NAME_KEYWORDS = [
     "Zhejiang",
     "Anhui",
     "Henan",
+    "Hubei",
     "Sichuan",
     "Shaanxi",
     "Fujian",

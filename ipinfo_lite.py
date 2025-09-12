@@ -143,6 +143,7 @@ AS_NAME_KEYWORDS = [
     "Henan",
     "Hubei",
     "Sichuan",
+    "Chongqing",
     "Shaanxi",
     "Fujian",
     "Xiamen",

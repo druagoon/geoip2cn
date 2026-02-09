@@ -167,6 +167,7 @@ REGEX_AS_NAME = re.compile(
 ASN_DENYLIST = (
     "AS4134",
     "AS4811",
+    "AS4816",
     "AS4847",
     "AS133774",
     "AS56005",

@@ -33,11 +33,9 @@ dev: init
 	@echo "To run linting, use 'make lint'."
 	@echo "To format code, use 'make fmt'."
 
-.PHONY: lint
-lint:
-	uv run black --check --diff --color .
-	uv run isort --check-only --diff --color .
-	uv run ruff check .
+.PHONY: fmt-toml
+fmt-toml:
+	taplo fmt
 
 .PHONY: fmt
 fmt:
@@ -45,6 +43,17 @@ fmt:
 	uv run isort .
 	uv run ruff check --fix .
 
+.PHONY: lint
+lint:
+	uv run black --check --diff --color .
+	uv run isort --check-only --diff --color .
+	uv run ruff check .
+	uv run mypy --pretty .
+
+.PHONY: test
+test:
+	uv run pytest tests
+
 .PHONY: run
 run:
-	uv run ipinfo_lite.py
+	uv run main.py

@@ -173,5 +173,5 @@ pyrightconfig.json
 ### Local ###
 /data/
 /db/
-/logs/
+/outputs/
 .envrc

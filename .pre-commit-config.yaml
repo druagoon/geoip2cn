@@ -16,9 +16,3 @@ repos:
         types: [python]
         language: system
         pass_filenames: false
-      # - id: typecheck
-      #   name: Typecheck
-      #   entry: uv run pyright
-      #   types: [python]
-      #   language: system
-      #   pass_filenames: false

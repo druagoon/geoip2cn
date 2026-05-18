@@ -1,4 +1,4 @@
-name: GeoIP2CN - IPinfo Lite Database Extractor
+name: geoip2cn - Render nftables output
 
 permissions:
   contents: write
@@ -19,20 +19,28 @@ jobs:
         uses: astral-sh/setup-uv@v6
       - name: Initialize Python environment
         run: make init
-      - name: Extracts IP networks
+      - name: Render nftables output
         env:
+          ALLOWED_IPS: ${{ secrets.ALLOWED_IPS }}
+          ASN_DENYLIST: ${{ secrets.ASN_DENYLIST }}
+          CITY_WHITELIST: ${{ secrets.CITY_WHITELIST }}
           IPINFO_TOKEN: ${{ secrets.IPINFO_TOKEN }}
+        run: make run
+      - name: Publish nftables.conf to download branch
         run: |
-          make run
-          echo "TAG_NAME=$(date +"%Y.%m.%d")" >>$GITHUB_ENV
-      - name: Push to 'download' branch
-        run: |
-          cd data
+          set -euo pipefail
+          cd outputs
           git init
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
-          git checkout -b download
+          git checkout -B download
           git add .
-          git commit -m "${{ env.TAG_NAME }}"
+
+          if git diff --cached --quiet; then
+            echo "No output changes to publish"
+            exit 0
+          fi
+
+          git commit -m "$(date +'%Y.%m.%d')"
           git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           git push -f origin download

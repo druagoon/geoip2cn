@@ -10,6 +10,8 @@ from typing import Protocol
 
 @dataclass(frozen=True)
 class GeoRecord:
+    """Normalized GeoIP record used across providers, rules, and renderers."""
+
     network: ipaddress.IPv4Network | ipaddress.IPv6Network
     country_code: str = ""
     asn: str = ""
@@ -18,6 +20,8 @@ class GeoRecord:
 
 
 class ProviderCapability(StrEnum):
+    """Capabilities a provider must expose for downstream rules."""
+
     COUNTRY = "country"
     ASN = "asn"
     PROVINCE = "province"
@@ -25,6 +29,10 @@ class ProviderCapability(StrEnum):
 
 
 class RecordRule(Protocol):
+    """Protocol implemented by record matching rules."""
+
     required_capabilities: frozenset[ProviderCapability]
 
-    def match(self, record: GeoRecord) -> bool: ...
+    def match(self, record: GeoRecord) -> bool:
+        """Return whether a record matches the rule."""
+        ...

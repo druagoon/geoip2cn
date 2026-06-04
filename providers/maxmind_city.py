@@ -45,9 +45,11 @@ class MaxMindCityProvider(GeoIPProvider):
     )
 
     def __init__(self, db_file: Path) -> None:
+        """Initialize the provider with the local MMDB file path."""
         self.db_file = db_file
 
     def ensure_database(self) -> None:
+        """Download and verify the city database when it is missing."""
         if self.db_file.exists():
             return
 
@@ -95,6 +97,7 @@ class MaxMindCityProvider(GeoIPProvider):
                 )
 
     def iter_records(self) -> Iterator[GeoRecord]:
+        """Yield normalized IPv4 records from the MaxMind city MMDB."""
         logger.info("Database read: provider=maxmind_city source=%s", self.db_file)
         with maxminddb.open_database(self.db_file) as reader:
             for network, record in reader:

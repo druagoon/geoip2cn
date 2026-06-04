@@ -14,6 +14,7 @@ class RFC3339Formatter(logging.Formatter):
     """Formatter that renders timestamps using local RFC3339 format."""
 
     def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:  # noqa: N802
+        """Format a log record timestamp as a local RFC3339 string."""
         del datefmt
         dt = datetime.datetime.fromtimestamp(
             record.created,

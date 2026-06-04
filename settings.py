@@ -33,6 +33,8 @@ MAXMIND_CITY_ASSET_NAME = "GeoLite2-City.mmdb"
 
 
 class Settings(BaseSettings):
+    """Environment-backed settings for the extraction pipeline."""
+
     allowed_ips: str = ""
     blocked_ips: str = ""
     asn_denylist: str = ""
@@ -43,6 +45,7 @@ class Settings(BaseSettings):
     @field_validator("log_level", mode="before")
     @classmethod
     def normalize_log_level(cls, value: object) -> str:
+        """Normalize the configured log level to an uppercase string."""
         if value is None:
             return DEFAULT_LOG_LEVEL
         if isinstance(value, str):
@@ -52,6 +55,7 @@ class Settings(BaseSettings):
 
     @classmethod
     def env_name(cls, field_name: str) -> str:
+        """Return the environment variable name for a settings field."""
         if field_name in cls.model_fields:
             return field_name
         raise ValueError(f"Settings field error: field={field_name} reason=missing_field")
@@ -59,4 +63,5 @@ class Settings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
+    """Return the cached runtime settings instance."""
     return Settings()

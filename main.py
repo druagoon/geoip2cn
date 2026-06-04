@@ -7,6 +7,7 @@ from services.pipeline import build_nftables_pipeline
 
 
 def main() -> None:
+    """Run the default GeoIP extraction pipeline."""
     setup_logging()
     build_nftables_pipeline().run()
 

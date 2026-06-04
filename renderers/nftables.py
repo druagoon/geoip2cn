@@ -24,6 +24,7 @@ class NftablesRenderer:
     """Renderer for nftables configuration output."""
 
     def __init__(self, template_dir: Path, output_file: Path, template_name: str = "nftables.conf") -> None:
+        """Initialize the renderer with template and output locations."""
         self.template_dir = template_dir
         self.output_file = output_file
         self.template_name = template_name

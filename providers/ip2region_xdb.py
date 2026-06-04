@@ -38,9 +38,11 @@ class IP2RegionXdbProvider(GeoIPProvider):
     )
 
     def __init__(self, db_file: Path) -> None:
+        """Initialize the provider with the local XDB file path."""
         self.db_file = db_file
 
     def ensure_database(self) -> None:
+        """Download the XDB database when it is not available locally."""
         if self.db_file.exists():
             return
 
@@ -54,6 +56,7 @@ class IP2RegionXdbProvider(GeoIPProvider):
         )
 
     def iter_records(self) -> Iterator[GeoRecord]:
+        """Yield normalized GeoIP records from the XDB index."""
         logger.info("Database read: provider=ip2region_xdb source=%s", self.db_file)
         data = self.db_file.read_bytes()
         index_start = int.from_bytes(data[HEADER_INDEX_START_OFFSET : HEADER_INDEX_START_OFFSET + 4], "little")

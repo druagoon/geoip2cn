@@ -33,9 +33,11 @@ class IPinfoLiteProvider(GeoIPProvider):
     capabilities = frozenset({ProviderCapability.COUNTRY, ProviderCapability.ASN})
 
     def __init__(self, db_file: Path) -> None:
+        """Initialize the provider with the local MMDB file path."""
         self.db_file = db_file
 
     def ensure_database(self) -> None:
+        """Refresh the MMDB when a token is configured and the data is stale."""
         token = get_settings().ipinfo_token
         if not token:
             raise ValueError(f"Configuration error: env_var={Settings.env_name('ipinfo_token')} reason=missing")
@@ -60,6 +62,7 @@ class IPinfoLiteProvider(GeoIPProvider):
         )
 
     def iter_records(self) -> Iterator[GeoRecord]:
+        """Yield normalized IPv4 records from the IPinfo MMDB."""
         logger.info("Database read: provider=ipinfo_lite source=%s", self.db_file)
         with maxminddb.open_database(self.db_file) as reader:
             for network, record in reader:

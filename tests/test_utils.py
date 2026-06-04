@@ -14,6 +14,7 @@ from rules.city_whitelist import (
 from utils import (
     dotv_str,
     download_file,
+    parse_country_codes,
     parse_ipv4_networks,
     request_json,
     split_comma,
@@ -146,6 +147,16 @@ def test_parse_ipv4_networks_trims_whitespace() -> None:
         ipaddress.ip_network("192.168.0.1/32"),
         ipaddress.ip_network("172.16.0.0/16"),
     }
+
+
+def test_parse_country_codes_trims_whitespace_and_normalizes_case() -> None:
+    codes = parse_country_codes(" cn,  us, ,jp ")
+
+    assert codes == {"CN", "US", "JP"}
+
+
+def test_parse_country_codes_allows_empty_value() -> None:
+    assert parse_country_codes("") == set()
 
 
 def test_split_comma_trims_whitespace_and_skips_empty_items() -> None:

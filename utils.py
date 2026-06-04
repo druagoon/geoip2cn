@@ -62,6 +62,11 @@ def split_comma[T](
         yield callback(parsed_item)
 
 
+def parse_country_codes(value: str) -> set[str]:
+    """Parse a comma-separated country-code allowlist into uppercase values."""
+    return {code.upper() for code in split_comma(value, callback=str.upper)}
+
+
 def parse_ipv4_networks(value: str) -> set[ipaddress.IPv4Network]:
     """Parse a comma-separated list of IPv4 CIDRs, trimming whitespace."""
     networks: set[ipaddress.IPv4Network] = set()

@@ -44,9 +44,10 @@ class MaxMindCityProvider(GeoIPProvider):
         }
     )
 
-    def __init__(self, db_file: Path) -> None:
+    def __init__(self, db_file: Path, country_codes: frozenset[str] = frozenset()) -> None:
         """Initialize the provider with the local MMDB file path."""
         self.db_file = db_file
+        self.country_codes = country_codes
 
     def ensure_database(self) -> None:
         """Download and verify the city database when it is missing."""
@@ -104,7 +105,10 @@ class MaxMindCityProvider(GeoIPProvider):
                 if isinstance(network, ipaddress.IPv6Network):
                     continue
                 try:
-                    yield self._to_record(network, record)
+                    geo_record = self._to_record(network, record)
+                    if not self.supports_country_code(geo_record.country_code):
+                        continue
+                    yield geo_record
                 except Exception:
                     continue
 

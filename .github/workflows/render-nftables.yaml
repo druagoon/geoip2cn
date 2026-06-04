@@ -21,10 +21,13 @@ jobs:
         run: make init
       - name: Render nftables output
         env:
-          ALLOWED_IPS: ${{ secrets.ALLOWED_IPS }}
-          ASN_DENYLIST: ${{ secrets.ASN_DENYLIST }}
-          CITY_WHITELIST: ${{ secrets.CITY_WHITELIST }}
           IPINFO_TOKEN: ${{ secrets.IPINFO_TOKEN }}
+          LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+          ALLOWED_IPS: ${{ vars.ALLOWED_IPS }}
+          BLOCKED_IPS: ${{ vars.BLOCKED_IPS }}
+          ASN_DENYLIST: ${{ vars.ASN_DENYLIST }}
+          CITY_WHITELIST: ${{ vars.CITY_WHITELIST }}
+          COUNTRY_CODES: ${{ vars.COUNTRY_CODES }}
         run: make run
       - name: Publish nftables.conf to download branch
         run: |

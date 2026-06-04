@@ -37,9 +37,10 @@ class IP2RegionXdbProvider(GeoIPProvider):
         }
     )
 
-    def __init__(self, db_file: Path) -> None:
+    def __init__(self, db_file: Path, country_codes: frozenset[str] = frozenset()) -> None:
         """Initialize the provider with the local XDB file path."""
         self.db_file = db_file
+        self.country_codes = country_codes
 
     def ensure_database(self) -> None:
         """Download the XDB database when it is not available locally."""
@@ -76,6 +77,9 @@ class IP2RegionXdbProvider(GeoIPProvider):
             region_pointer = int.from_bytes(entry[10:14], "little")
             region_string = data[region_pointer : region_pointer + region_length].decode("utf-8")
             _, province, city, country_code = self._parse_region(region_string)
+            if not self.supports_country_code(country_code):
+                continue
+
             logger.debug(
                 "Parsed record: provider=ip2region_xdb start_ip=%s end_ip=%s country_code=%s province=%s city=%s",
                 start_ip,

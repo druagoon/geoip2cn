@@ -145,6 +145,7 @@ def test_nftables_pipeline_run_passes_extracted_networks_to_renderer(monkeypatch
 def test_build_nftables_pipeline_loads_city_whitelist_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ALLOWED_IPS", "")
     monkeypatch.setenv("BLOCKED_IPS", "4.4.4.0/24, 5.5.5.0/24")
+    monkeypatch.setenv("COUNTRY_CODES", " cn, us ")
     monkeypatch.setenv("ASN_DENYLIST", "AS4134, AS4811")
     monkeypatch.setenv("CITY_WHITELIST", "CN|上海|上海市, CN|江苏省|南京市")
 
@@ -156,6 +157,8 @@ def test_build_nftables_pipeline_loads_city_whitelist_from_env(monkeypatch: pyte
     assert pipeline.blacklist_job.name == NFTABLES_GEOIP_BLACKLIST_V4_NAME
     assert pipeline.whitelist_job.name == NFTABLES_GEOIP_WHITELIST_V4_NAME
     assert pipeline.blocked_ips == {ipaddress.IPv4Network("4.4.4.0/24"), ipaddress.IPv4Network("5.5.5.0/24")}
+    assert pipeline.blacklist_job.provider.country_codes == frozenset({"CN", "US"})
+    assert pipeline.whitelist_job.provider.country_codes == frozenset({"CN", "US"})
     assert pipeline.blacklist_job.rule.denylist == {"AS4134", "AS4811"}
     assert pipeline.whitelist_job.rule.whitelist == {
         ("cn", "上海", "上海市"),
@@ -166,6 +169,7 @@ def test_build_nftables_pipeline_loads_city_whitelist_from_env(monkeypatch: pyte
 def test_build_nftables_pipeline_allows_empty_asn_denylist(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ALLOWED_IPS", "")
     monkeypatch.setenv("BLOCKED_IPS", "")
+    monkeypatch.setenv("COUNTRY_CODES", "")
     monkeypatch.setenv("ASN_DENYLIST", "")
     monkeypatch.setenv("CITY_WHITELIST", "CN|上海|上海市")
 
@@ -173,6 +177,7 @@ def test_build_nftables_pipeline_allows_empty_asn_denylist(monkeypatch: pytest.M
 
     assert isinstance(pipeline.blacklist_job.rule, ASNBlacklistRule)
     assert pipeline.blacklist_job.rule.denylist == set()
+    assert pipeline.blacklist_job.provider.country_codes == frozenset()
 
 
 def test_build_nftables_pipeline_requires_non_empty_city_whitelist(monkeypatch: pytest.MonkeyPatch) -> None:

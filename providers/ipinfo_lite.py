@@ -32,9 +32,10 @@ class IPinfoLiteProvider(GeoIPProvider):
     name = "ipinfo_lite"
     capabilities = frozenset({ProviderCapability.COUNTRY, ProviderCapability.ASN})
 
-    def __init__(self, db_file: Path) -> None:
+    def __init__(self, db_file: Path, country_codes: frozenset[str] = frozenset()) -> None:
         """Initialize the provider with the local MMDB file path."""
         self.db_file = db_file
+        self.country_codes = country_codes
 
     def ensure_database(self) -> None:
         """Refresh the MMDB when a token is configured and the data is stale."""
@@ -69,7 +70,11 @@ class IPinfoLiteProvider(GeoIPProvider):
                 if isinstance(network, ipaddress.IPv6Network):
                     continue
                 try:
-                    yield self._to_record(network, record)
+                    geo_record = self._to_record(network, record)
+                    if not self.supports_country_code(geo_record.country_code):
+                        continue
+                    logger.debug("Read record: provider=ipinfo_lite network=%s record=%s", network, record)
+                    yield geo_record
                 except Exception:
                     continue
 

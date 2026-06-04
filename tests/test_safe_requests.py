@@ -1,11 +1,28 @@
 from __future__ import annotations
 
+import ipaddress
+from collections.abc import Iterator
 from pathlib import Path
+from typing import cast
 
 import pytest
 
 from providers.ipinfo_lite import IPinfoLiteProvider
 from providers.maxmind_city import MaxMindCityProvider
+
+
+class DummyDatabase:
+    def __init__(self, rows: list[tuple[str, dict[str, object]]]) -> None:
+        self.rows = rows
+
+    def __enter__(self) -> DummyDatabase:
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
+        return None
+
+    def __iter__(self) -> Iterator[tuple[str, dict[str, object]]]:
+        return iter(self.rows)
 
 
 def test_ipinfo_provider_download_error_does_not_expose_token(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -27,6 +44,26 @@ def test_ipinfo_provider_download_error_does_not_expose_token(monkeypatch: pytes
         provider.ensure_database()
 
     assert secret_token not in str(exc_info.value)
+
+
+def test_ipinfo_provider_iter_records_skips_unmatched_country_codes(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    provider = IPinfoLiteProvider(tmp_path / "ipinfo_lite.mmdb", country_codes=frozenset({"CN"}))
+    rows = [
+        ("1.1.1.0/24", {"country_code": "CN", "asn": "AS4134"}),
+        ("2.2.2.0/24", {"country_code": "US", "asn": "AS15169"}),
+    ]
+
+    monkeypatch.setattr(
+        "providers.ipinfo_lite.maxminddb.open_database",
+        lambda db_file: DummyDatabase(cast(list[tuple[str, dict[str, object]]], rows)),
+    )
+
+    records = list(provider.iter_records())
+
+    assert [record.network for record in records] == [ipaddress.ip_network("1.1.1.0/24")]
+    assert [record.country_code for record in records] == ["CN"]
 
 
 def test_maxmind_provider_release_error_stays_sanitized(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

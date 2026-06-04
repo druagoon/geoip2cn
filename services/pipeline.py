@@ -32,7 +32,10 @@ from settings import (
     Settings,
     get_settings,
 )
-from utils import parse_ipv4_networks
+from utils import (
+    parse_country_codes,
+    parse_ipv4_networks,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -98,17 +101,18 @@ def build_nftables_pipeline() -> NftablesPipeline:
     settings = get_settings()
     allowed_ips = parse_ipv4_networks(settings.allowed_ips)
     blocked_ips = parse_ipv4_networks(settings.blocked_ips)
+    country_codes = frozenset(parse_country_codes(settings.country_codes))
     asn_denylist = parse_asn_denylist(settings.asn_denylist)
     city_whitelist = parse_city_whitelist(settings.city_whitelist, env_var=Settings.env_name("city_whitelist"))
     return NftablesPipeline(
         blacklist_job=ExtractionJob(
             NFTABLES_GEOIP_BLACKLIST_V4_NAME,
-            IPinfoLiteProvider(IPINFO_DB_FILE),
+            IPinfoLiteProvider(IPINFO_DB_FILE, country_codes=country_codes),
             ASNBlacklistRule(asn_denylist),
         ),
         whitelist_job=ExtractionJob(
             NFTABLES_GEOIP_WHITELIST_V4_NAME,
-            IP2RegionXdbProvider(IP2REGION_XDB_FILE),
+            IP2RegionXdbProvider(IP2REGION_XDB_FILE, country_codes=country_codes),
             CityWhitelistRule(city_whitelist),
         ),
         renderer=NftablesRenderer(TEMPLATE_DIR, NFTABLES_OUTPUT_FILE, NFTABLES_TEMPLATE_NAME),

@@ -67,6 +67,7 @@ class NftablesPipeline:
     whitelist_job: ExtractionJob
     renderer: NftablesRenderer
     allowed_ips: Set[ipaddress.IPv4Network] = frozenset()
+    blocked_ips: Set[ipaddress.IPv4Network] = frozenset()
 
     def extract(self) -> NftablesNetworks:
         """Extract blacklist and whitelist networks for nftables rendering."""
@@ -82,7 +83,12 @@ class NftablesPipeline:
     def run(self) -> NftablesNetworks:
         """Execute extraction and render the nftables configuration."""
         networks = self.extract()
-        self.renderer.write(networks.blacklist_v4, networks.whitelist_v4, allowed_ips=self.allowed_ips)
+        self.renderer.write(
+            networks.blacklist_v4,
+            networks.whitelist_v4,
+            allowed_ips=self.allowed_ips,
+            blocked_ips=self.blocked_ips,
+        )
         logger.info("Pipeline run complete")
         return networks
 
@@ -91,6 +97,7 @@ def build_nftables_pipeline() -> NftablesPipeline:
     """Assemble the default nftables extraction and rendering pipeline."""
     settings = get_settings()
     allowed_ips = parse_ipv4_networks(settings.allowed_ips)
+    blocked_ips = parse_ipv4_networks(settings.blocked_ips)
     asn_denylist = parse_asn_denylist(settings.asn_denylist)
     city_whitelist = parse_city_whitelist(settings.city_whitelist, env_var=Settings.env_name("city_whitelist"))
     return NftablesPipeline(
@@ -106,4 +113,5 @@ def build_nftables_pipeline() -> NftablesPipeline:
         ),
         renderer=NftablesRenderer(TEMPLATE_DIR, NFTABLES_OUTPUT_FILE, NFTABLES_TEMPLATE_NAME),
         allowed_ips=allowed_ips,
+        blocked_ips=blocked_ips,
     )

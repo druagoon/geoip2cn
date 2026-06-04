@@ -55,7 +55,14 @@ class StubRule:
 
 class StubRenderer(NftablesRenderer):
     def __init__(self) -> None:
-        self.calls: list[tuple[set[ipaddress.IPv4Network], set[ipaddress.IPv4Network], Set[ipaddress.IPv4Network]]] = []
+        self.calls: list[
+            tuple[
+                set[ipaddress.IPv4Network],
+                set[ipaddress.IPv4Network],
+                Set[ipaddress.IPv4Network],
+                Set[ipaddress.IPv4Network],
+            ]
+        ] = []
 
     def write(
         self,
@@ -64,8 +71,7 @@ class StubRenderer(NftablesRenderer):
         allowed_ips: Iterable[ipaddress.IPv4Network] = frozenset(),
         blocked_ips: Iterable[ipaddress.IPv4Network] = frozenset(),
     ) -> None:
-        del blocked_ips
-        self.calls.append((set(blacklist_v4), set(whitelist_v4), set(allowed_ips)))
+        self.calls.append((set(blacklist_v4), set(whitelist_v4), set(allowed_ips), set(blocked_ips)))
 
 
 def test_nftables_renderer_write_creates_output_directory(tmp_path: Path) -> None:
@@ -74,7 +80,9 @@ def test_nftables_renderer_write_creates_output_directory(tmp_path: Path) -> Non
     template_dir.mkdir(parents=True)
     (template_dir / "nftables.conf").write_text(
         "blacklist={{ geoip_blacklist_v4_networks|join(',') }}\n"
-        "whitelist={{ geoip_whitelist_v4_networks|join(',') }}\n",
+        "whitelist={{ geoip_whitelist_v4_networks|join(',') }}\n"
+        "allowed={{ allowed_ips|join(',') }}\n"
+        "blocked={{ blocked_ips|join(',') }}\n",
         encoding="utf-8",
     )
 
@@ -83,16 +91,21 @@ def test_nftables_renderer_write_creates_output_directory(tmp_path: Path) -> Non
     renderer.write(
         {ipaddress.IPv4Network("1.1.1.0/24")},
         {ipaddress.IPv4Network("2.2.2.0/24")},
+        {ipaddress.IPv4Network("3.3.3.0/24")},
+        {ipaddress.IPv4Network("4.4.4.0/24")},
     )
 
     assert output_file.exists()
-    assert output_file.read_text(encoding="utf-8") == "blacklist=1.1.1.0/24\nwhitelist=2.2.2.0/24\n"
+    assert output_file.read_text(encoding="utf-8") == (
+        "blacklist=1.1.1.0/24\nwhitelist=2.2.2.0/24\nallowed=3.3.3.0/24\nblocked=4.4.4.0/24\n"
+    )
 
 
 def test_nftables_pipeline_run_passes_extracted_networks_to_renderer(monkeypatch: pytest.MonkeyPatch) -> None:
     blacklist_networks = {ipaddress.IPv4Network("1.1.1.0/24")}
     whitelist_networks = {ipaddress.IPv4Network("2.2.2.0/24")}
     allowed_networks = {ipaddress.IPv4Network("3.3.3.0/24")}
+    blocked_networks = {ipaddress.IPv4Network("4.4.4.0/24")}
     renderer = StubRenderer()
 
     jobs: dict[str, set[ipaddress.IPv4Network]] = {
@@ -119,17 +132,19 @@ def test_nftables_pipeline_run_passes_extracted_networks_to_renderer(monkeypatch
         ),
         renderer=renderer,
         allowed_ips=allowed_networks,
+        blocked_ips=blocked_networks,
     )
 
     networks = pipeline.run()
 
     assert networks.blacklist_v4 == blacklist_networks
     assert networks.whitelist_v4 == whitelist_networks
-    assert renderer.calls == [(blacklist_networks, whitelist_networks, allowed_networks)]
+    assert renderer.calls == [(blacklist_networks, whitelist_networks, allowed_networks, blocked_networks)]
 
 
 def test_build_nftables_pipeline_loads_city_whitelist_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ALLOWED_IPS", "")
+    monkeypatch.setenv("BLOCKED_IPS", "4.4.4.0/24, 5.5.5.0/24")
     monkeypatch.setenv("ASN_DENYLIST", "AS4134, AS4811")
     monkeypatch.setenv("CITY_WHITELIST", "CN|上海|上海市, CN|江苏省|南京市")
 
@@ -140,6 +155,7 @@ def test_build_nftables_pipeline_loads_city_whitelist_from_env(monkeypatch: pyte
     assert isinstance(pipeline.whitelist_job.provider, IP2RegionXdbProvider)
     assert pipeline.blacklist_job.name == NFTABLES_GEOIP_BLACKLIST_V4_NAME
     assert pipeline.whitelist_job.name == NFTABLES_GEOIP_WHITELIST_V4_NAME
+    assert pipeline.blocked_ips == {ipaddress.IPv4Network("4.4.4.0/24"), ipaddress.IPv4Network("5.5.5.0/24")}
     assert pipeline.blacklist_job.rule.denylist == {"AS4134", "AS4811"}
     assert pipeline.whitelist_job.rule.whitelist == {
         ("cn", "上海", "上海市"),
@@ -149,6 +165,7 @@ def test_build_nftables_pipeline_loads_city_whitelist_from_env(monkeypatch: pyte
 
 def test_build_nftables_pipeline_allows_empty_asn_denylist(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ALLOWED_IPS", "")
+    monkeypatch.setenv("BLOCKED_IPS", "")
     monkeypatch.setenv("ASN_DENYLIST", "")
     monkeypatch.setenv("CITY_WHITELIST", "CN|上海|上海市")
 
@@ -160,6 +177,7 @@ def test_build_nftables_pipeline_allows_empty_asn_denylist(monkeypatch: pytest.M
 
 def test_build_nftables_pipeline_requires_non_empty_city_whitelist(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ALLOWED_IPS", "")
+    monkeypatch.setenv("BLOCKED_IPS", "")
     monkeypatch.delenv("CITY_WHITELIST", raising=False)
 
     with pytest.raises(ValueError, match=r"Configuration error: env_var=city_whitelist reason=empty"):

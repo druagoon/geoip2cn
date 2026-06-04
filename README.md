@@ -66,6 +66,7 @@ Updates `nftables.conf` with IPv4 GeoIP blacklist and whitelist sets.
    ```shell
    export IPINFO_TOKEN=your_token_here
    export ASN_DENYLIST=AS4134,AS4811
+   export BLOCKED_IPS=1.2.3.4/32,5.6.7.0/24
    export CITY_WHITELIST='CN|上海|上海市'
    ```
 
@@ -85,6 +86,7 @@ Updates `nftables.conf` with IPv4 GeoIP blacklist and whitelist sets.
 ## Customization
 
 - You can modify the ASN blacklist through the `asn_denylist` environment variable using comma-separated ASN values such as `AS4134,AS4811`; leaving it empty disables ASN blacklist matches.
+- You can add explicit source drop rules through the `blocked_ips` environment variable using comma-separated IPv4 CIDR entries such as `1.2.3.4/32,5.6.7.0/24`; these entries are rendered into the `blocked_ips` nftables set.
 - You can modify the city whitelist targets through the `city_whitelist` environment variable using `country|province|city` entries separated by commas.
 - The city whitelist is matched against ip2region region strings, so country, province, and city values should use the names stored in that database for the target region.
 - Runtime paths, URLs, environment variable names, and template/output settings live in `settings.py`.

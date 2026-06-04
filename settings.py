@@ -34,6 +34,7 @@ MAXMIND_CITY_ASSET_NAME = "GeoLite2-City.mmdb"
 
 class Settings(BaseSettings):
     allowed_ips: str = ""
+    blocked_ips: str = ""
     asn_denylist: str = ""
     city_whitelist: str = ""
     ipinfo_token: str | None = None

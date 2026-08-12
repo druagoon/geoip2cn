@@ -8,6 +8,7 @@ from pathlib import Path
 from pydantic import field_validator
 from pydantic_settings import (
     BaseSettings,
+    SettingsConfigDict,
 )
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -35,13 +36,40 @@ MAXMIND_CITY_ASSET_NAME = "GeoLite2-City.mmdb"
 class Settings(BaseSettings):
     """Environment-backed settings for the extraction pipeline."""
 
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+    )
+
     allowed_ips: str = ""
     blocked_ips: str = ""
-    country_codes: str = ""
     asn_denylist: str = ""
     city_whitelist: str = ""
+    country_codes: str = ""
     ipinfo_token: str | None = None
     log_level: str = DEFAULT_LOG_LEVEL
+
+    @field_validator(
+        "allowed_ips",
+        "blocked_ips",
+        "asn_denylist",
+        "city_whitelist",
+        mode="before",
+    )
+    @classmethod
+    def normalize_multivalue_setting(cls, value: object) -> object:
+        """Normalize comma- or line-separated values and discard comment lines."""
+        if not isinstance(value, str):
+            return value
+
+        items: list[str] = []
+        for line in value.splitlines():
+            normalized_line = line.strip()
+            if not normalized_line or normalized_line.startswith("#"):
+                continue
+            items.extend(item for part in normalized_line.split(",") if (item := part.strip()))
+
+        return ",".join(items)
 
     @field_validator("log_level", mode="before")
     @classmethod

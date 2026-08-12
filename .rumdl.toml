@@ -1,0 +1,29 @@
+[global]
+disable = ["MD033"]
+respect-gitignore = true
+
+[MD013]
+line-length = 120
+reflow = true
+
+[MD029]
+style = "ordered"
+
+[MD046]
+style = "fenced"
+
+[MD048]
+style = "backtick"
+
+[MD049]
+style = "asterisk"
+
+[MD050]
+style = "asterisk"
+
+[MD055]
+style = "leading_and_trailing"
+
+[MD060]
+enabled = true
+style = "aligned"

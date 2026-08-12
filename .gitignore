@@ -174,4 +174,4 @@ pyrightconfig.json
 /data/
 /db/
 /outputs/
-.envrc
+.env

@@ -6,20 +6,20 @@ readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "Jinja2>=3.1.6",
-  "maxminddb>=2.8.2",
-  "pydantic-settings>=2.10.1",
-  "requests>=2.32.4",
+  "maxminddb>=3.1.1",
+  "pydantic-settings>=2.15.0",
+  "requests>=2.34.2",
 ]
 
 [dependency-groups]
 dev = [
-  "black>=25.1.0",
-  "isort[colors]>=6.0.1",
-  "mypy>=2.1.0",
-  "pre-commit>=4.2.0",
-  "pytest>=8.4.1",
-  "ruff>=0.12.8",
-  "types-requests>=2.32.4.20250611",
+  "black>=26.5.1",
+  "isort[colors]>=8.0.1",
+  "mypy>=2.3.0",
+  "prek>=0.4.13",
+  "pytest>=9.1.1",
+  "ruff>=0.16.2",
+  "types-requests>=2.33.0.20260712",
 ]
 
 [tool.black]

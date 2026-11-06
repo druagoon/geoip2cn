@@ -9,6 +9,7 @@ import time
 from collections.abc import (
     Callable,
     Generator,
+    Mapping,
 )
 from pathlib import Path
 from typing import (
@@ -21,19 +22,20 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-def dotv(data: dict[str, Any], key: str, default: Any = None) -> Any:
-    """Get a nested dictionary value using dot notation."""
+def dotv(data: Mapping[str, object], key: str, default: object = None) -> object:
+    """Get a nested mapping value using dot notation."""
     part = key.split(".")
     last = part.pop()
     for value in part:
-        data = data.get(value) or {}
-        if not isinstance(data, dict):
-            raise ValueError(f"Lookup error: expected_type=dict actual_type={type(data).__name__}")
+        nested = data.get(value) or {}
+        if not isinstance(nested, Mapping):
+            raise ValueError(f"Lookup error: expected_type=Mapping actual_type={type(nested).__name__}")
+        data = nested
     return data.get(last, default)
 
 
-def dotv_str(data: dict[str, Any], key: str, default: str = "") -> str:
-    """Get a nested dictionary value as a string using dot notation."""
+def dotv_str(data: Mapping[str, object], key: str, default: str = "") -> str:
+    """Get a nested mapping value as a string using dot notation."""
     value = dotv(data, key, default)
     return value if isinstance(value, str) else default
 

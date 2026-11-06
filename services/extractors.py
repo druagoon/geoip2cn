@@ -5,9 +5,11 @@ from __future__ import annotations
 import ipaddress
 import logging
 import time
+from typing import TYPE_CHECKING
 
-from models import RecordRule
-from providers.base import GeoIPProvider
+if TYPE_CHECKING:
+    from models import RecordRule
+    from providers.base import GeoIPProvider
 
 logger = logging.getLogger(__name__)
 

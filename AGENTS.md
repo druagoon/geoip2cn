@@ -45,10 +45,12 @@ make init && make run
 
 ## Coding Style & Naming Conventions
 
-Target Python 3.12. Use 4-space indentation and keep lines within 120 characters. Black formats code, isort orders
-imports, and Ruff handles linting. Prefer `snake_case` for functions, variables, and filenames. Keep constants uppercase
-when module constants are needed. Write small, direct functions and keep provider, rule, service, and renderer
-responsibilities separate.
+Target Python 3.12.
+Use 4-space indentation and keep lines within 120 characters.
+Black formats code, isort orders imports, and Ruff handles linting.
+Prefer `snake_case` for functions, variables, and filenames.
+Keep constants uppercase when module constants are needed.
+Write small, direct functions and keep provider, rule, service, and renderer responsibilities separate.
 
 ## Testing Guidelines
 
@@ -69,6 +71,6 @@ workflow UI problem is being discussed.
 
 ## Security & Configuration Tips
 
-Do not commit `IPINFO_TOKEN` or other secrets. Provide credentials through environment variables or GitHub Actions
-secrets only. Avoid manually editing generated files in `outputs/` unless the change is part of verified output
-regeneration.
+Do not commit `IPINFO_TOKEN` or other secrets.
+Provide credentials through environment variables or GitHub Actions secrets only.
+Avoid manually editing generated files in `outputs/` unless the change is part of verified output regeneration.

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-import pytest
+from typing import TYPE_CHECKING
 
 from logging_config import build_logging_config
 from settings import get_settings
+
+if TYPE_CHECKING:
+    import pytest
 
 
 def test_build_logging_config_defaults_to_info_when_log_level_is_unset(monkeypatch: pytest.MonkeyPatch) -> None:

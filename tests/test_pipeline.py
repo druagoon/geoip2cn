@@ -4,7 +4,7 @@ import ipaddress
 from collections.abc import (
     Iterable,
     Iterator,
-    Set,
+    Set as AbstractSet,
 )
 from pathlib import Path
 from typing import cast
@@ -59,8 +59,8 @@ class StubRenderer(NftablesRenderer):
             tuple[
                 set[ipaddress.IPv4Network],
                 set[ipaddress.IPv4Network],
-                Set[ipaddress.IPv4Network],
-                Set[ipaddress.IPv4Network],
+                AbstractSet[ipaddress.IPv4Network],
+                AbstractSet[ipaddress.IPv4Network],
             ]
         ] = []
 

@@ -3,7 +3,10 @@ from __future__ import annotations
 import ipaddress
 from collections.abc import Iterator
 from pathlib import Path
-from typing import cast
+from typing import (
+    Self,
+    cast,
+)
 
 import pytest
 
@@ -15,7 +18,7 @@ class DummyDatabase:
     def __init__(self, rows: list[tuple[str, dict[str, object]]]) -> None:
         self.rows = rows
 
-    def __enter__(self) -> DummyDatabase:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:

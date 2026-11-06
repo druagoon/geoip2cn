@@ -33,22 +33,39 @@ dev: init
 	@echo "To run linting, use 'make lint'."
 	@echo "To format code, use 'make fmt'."
 
+.PHONY: fmt-markdown
+fmt-markdown:
+	rumdl fmt
+	rumdl check --fix
+
 .PHONY: fmt-toml
 fmt-toml:
 	taplo fmt
 
-.PHONY: fmt
-fmt:
+.PHONY: fmt-python
+fmt-python:
 	uv run black .
 	uv run isort .
-	uv run ruff check --fix .
+# 	uv run ruff check --fix .
+	uv run ruff check --fix --unsafe-fixes .
 
-.PHONY: lint
-lint:
+.PHONY: fmt
+fmt: fmt-markdown fmt-toml fmt-python
+
+.PHONY: lint-markdown
+lint-markdown:
+	rumdl check
+
+.PHONY: lint-python
+lint-python:
 	uv run black --check --diff --color .
 	uv run isort --check-only --diff --color .
-	uv run ruff check .
+	uv run ruff check
 	uv run mypy --pretty .
+	uv run ty check
+
+.PHONY: lint
+lint: lint-markdown lint-python
 
 .PHONY: test
 test:

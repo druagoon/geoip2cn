@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import ipaddress
 from pathlib import Path
+from types import MappingProxyType
+from typing import Self
 
 import pytest
 import requests
@@ -12,6 +14,7 @@ from rules.city_whitelist import (
     parse_city_whitelist,
 )
 from utils import (
+    dotv,
     dotv_str,
     download_file,
     parse_country_codes,
@@ -29,7 +32,7 @@ class DummyResponse:
         self._payload = payload
         self._chunks = chunks or []
 
-    def __enter__(self) -> DummyResponse:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
@@ -125,6 +128,37 @@ def test_download_file_hides_url_on_http_error(monkeypatch: pytest.MonkeyPatch, 
 
     assert secret_url not in str(exc_info.value)
     assert "super-secret-token" not in str(exc_info.value)
+
+
+def test_dotv_accepts_nested_read_only_mappings() -> None:
+    data = MappingProxyType({"city": MappingProxyType({"name": "Shanghai"})})
+
+    assert dotv(data, "city.name") == "Shanghai"
+    assert dotv_str(data, "city.name") == "Shanghai"
+
+
+@pytest.mark.parametrize("value", [None, False, 0, "", {}, []])
+def test_dotv_preserves_fallback_for_falsy_intermediate_values(value: object) -> None:
+    default = object()
+
+    assert dotv({"city": value}, "city.name", default) is default
+
+
+@pytest.mark.parametrize("value", [None, False, 0, ""])
+def test_dotv_preserves_existing_leaf_values(value: object) -> None:
+    assert dotv(MappingProxyType({"value": value}), "value", "fallback") is value
+
+
+def test_dotv_returns_default_for_missing_path() -> None:
+    default = object()
+
+    assert dotv(MappingProxyType({}), "city.name", default) is default
+    assert dotv_str(MappingProxyType({}), "city.name", "Unknown") == "Unknown"
+
+
+def test_dotv_rejects_non_mapping_intermediate_value() -> None:
+    with pytest.raises(ValueError, match=r"Lookup error: expected_type=Mapping actual_type=str"):
+        dotv({"city": "Shanghai"}, "city.name")
 
 
 def test_dotv_str_returns_nested_string_value() -> None:

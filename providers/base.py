@@ -7,11 +7,13 @@ from abc import (
     abstractmethod,
 )
 from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
-from models import (
-    GeoRecord,
-    ProviderCapability,
-)
+if TYPE_CHECKING:
+    from models import (
+        GeoRecord,
+        ProviderCapability,
+    )
 
 
 class GeoIPProvider(ABC):

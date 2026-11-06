@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import ipaddress
 import logging
-from collections.abc import Set
+from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from models import RecordRule
-from providers.base import GeoIPProvider
 from providers.ip2region_xdb import IP2RegionXdbProvider
 from providers.ipinfo_lite import IPinfoLiteProvider
 from renderers.nftables import NftablesRenderer
@@ -36,6 +35,10 @@ from utils import (
     parse_country_codes,
     parse_ipv4_networks,
 )
+
+if TYPE_CHECKING:
+    from models import RecordRule
+    from providers.base import GeoIPProvider
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +72,8 @@ class NftablesPipeline:
     blacklist_job: ExtractionJob
     whitelist_job: ExtractionJob
     renderer: NftablesRenderer
-    allowed_ips: Set[ipaddress.IPv4Network] = frozenset()
-    blocked_ips: Set[ipaddress.IPv4Network] = frozenset()
+    allowed_ips: AbstractSet[ipaddress.IPv4Network] = frozenset()
+    blocked_ips: AbstractSet[ipaddress.IPv4Network] = frozenset()
 
     def extract(self) -> NftablesNetworks:
         """Extract blacklist and whitelist networks for nftables rendering."""

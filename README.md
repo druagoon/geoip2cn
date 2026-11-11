@@ -19,7 +19,8 @@ Updates `nftables.conf` with IPv4 GeoIP blacklist and whitelist sets, plus expli
 - Downloads the latest IPInfo Lite MaxMindDB database (requires IPINFO_TOKEN).
 - Downloads the ip2region XDB database for city-based whitelisting.
 - Extracts `geoip_blacklist_v4` via `providers/ipinfo_lite.py` and `rules/asn_blacklist.py`.
-- Extracts `geoip_whitelist_v4` via `providers/ip2region_xdb.py` and `rules/city_whitelist.py`.
+- Merges city matches from `providers/ip2region_xdb.py` / `rules/city_whitelist.py` and optional
+  ASN matches from `providers/ipinfo_lite.py` / `rules/asn_whitelist.py` into `geoip_whitelist_v4`.
 - Parses optional `allowed_ips`, `blocked_ips`, and `country_codes` settings in
   `services/pipeline.py` before rendering.
 - Assembles the default run through `services/pipeline.py`, which wires extraction jobs to the
@@ -63,9 +64,13 @@ Run `uv run ty check` to check types with ty alone.
 - An ASN denylist string (set as environment variable `asn_denylist`; uppercase `ASN_DENYLIST` also
   works) using comma- or newline-separated values such as `AS4134,AS4811,AS56005`; this value may be
   empty
+- An optional ASN allowlist string (set as environment variable `asn_allowlist`; uppercase
+  `ASN_ALLOWLIST` also works) using comma- or newline-separated values such as `AS13335,AS15169`;
+  this value may be empty, and ASN matching is case-insensitive
 - A city whitelist string (set as environment variable `city_whitelist`; uppercase `CITY_WHITELIST`
-  also works) using comma- or newline-separated `country|province|city` values
-- For `allowed_ips`, `blocked_ips`, `asn_denylist`, and `city_whitelist`, blank entries and lines
+  also works) using comma- or newline-separated `country|province|city` values; this is required
+  even when `asn_allowlist` is configured
+- For `allowed_ips`, `blocked_ips`, `asn_denylist`, `asn_allowlist`, and `city_whitelist`, blank entries and lines
   whose first non-whitespace character is `#` are ignored; inline comments are not supported
 - An optional log level (set as environment variable `log_level`; uppercase `LOG_LEVEL` also works),
   for example `INFO` or `DEBUG`
@@ -92,6 +97,7 @@ Run `uv run ty check` to check types with ty alone.
    export IPINFO_TOKEN=your_token_here
    export ALLOWED_IPS=203.0.113.4/32
    export ASN_DENYLIST=AS4134,AS4811
+   export ASN_ALLOWLIST=AS13335,AS15169
    export BLOCKED_IPS=1.2.3.4/32,5.6.7.0/24
    export COUNTRY_CODES=CN,US
    export CITY_WHITELIST='CN|上海|上海市'
@@ -108,7 +114,7 @@ Run `uv run ty check` to check types with ty alone.
    - download or reuse `db/ipinfo_lite.mmdb`
    - download or reuse `db/ip2region_v4.xdb`
    - extract `geoip_blacklist_v4` networks
-   - extract `geoip_whitelist_v4` networks
+   - merge city and ASN whitelist networks into `geoip_whitelist_v4`
    - parse optional `allowed_ips`, `blocked_ips`, and `country_codes` filters
    - render `templates/nftables.conf` to `outputs/nftables.conf`
 
@@ -120,6 +126,13 @@ Run `uv run ty check` to check types with ty alone.
 - You can modify the ASN blacklist through the `asn_denylist` environment variable using comma- or
   newline-separated ASN values such as `AS4134,AS4811`; leaving it empty disables ASN blacklist
   matches.
+- You can extend the GeoIP whitelist through the `asn_allowlist` environment variable using comma-
+  or newline-separated ASN values such as `AS13335,AS15169`. Matching IPv4 networks from IPinfo
+  are unioned with city matches, then deduplicated and collapsed into `geoip_whitelist_v4`.
+  ASN matches honor `country_codes`; an empty filter allows all countries. Leaving the ASN
+  allowlist empty disables this extraction. IPinfo ASN blacklist and whitelist rules share one
+  database refresh check and record scan per run. Existing block rules and the ASN blacklist still
+  take precedence over the merged GeoIP whitelist.
 - You can add explicit source drop rules through the `blocked_ips` environment variable using comma-
   or newline-separated IPv4 CIDR entries such as `1.2.3.4/32,5.6.7.0/24`; these entries are rendered
   into the `blocked_ips` nftables set.

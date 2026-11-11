@@ -24,8 +24,8 @@ Use `uv` and the provided `Makefile` targets:
 - `make init`: install Python 3.12 if needed, create `.venv`, and sync dependencies.
 - `make dev`: install development tooling and pre-commit hooks.
 - `make run`: execute `main.py`. Requires `IPINFO_TOKEN` and `CITY_WHITELIST`; supports optional `ALLOWED_IPS`,
-  `BLOCKED_IPS`, `COUNTRY_CODES`, `ASN_DENYLIST`, and `LOG_LEVEL`; whitelist values should match the country, province,
-  and city names stored in the ip2region database for the target region.
+  `BLOCKED_IPS`, `COUNTRY_CODES`, `ASN_DENYLIST`, `ASN_ALLOWLIST`, and `LOG_LEVEL`; city whitelist values should match
+  the country, province, and city names stored in the ip2region database for the target region.
 - `make lint`: run `black --check`, `isort --check-only`, `ruff check`, and `mypy`.
 - `make test`: run the pytest suite under `tests/`.
 - `make fmt`: format imports and code, then apply safe Ruff fixes.
@@ -39,6 +39,7 @@ export ALLOWED_IPS=203.0.113.4/32
 export BLOCKED_IPS=1.2.3.4/32,5.6.7.0/24
 export COUNTRY_CODES=CN,US
 export ASN_DENYLIST=AS4134,AS4811
+export ASN_ALLOWLIST=AS13335,AS15169
 export CITY_WHITELIST='CN|上海|上海市'
 make init && make run
 ```
@@ -55,9 +56,9 @@ Write small, direct functions and keep provider, rule, service, and renderer res
 ## Testing Guidelines
 
 Use `make test` for the current pytest suite and `make lint` for static validation. For behavior changes, run `make run`
-with valid `IPINFO_TOKEN` and `CITY_WHITELIST` values, plus optional `ALLOWED_IPS`, `BLOCKED_IPS`, `COUNTRY_CODES`, and
-`ASN_DENYLIST` when testing filter behavior, and verify the rendered `outputs/nftables.conf` output. Keep tests under
-`tests/test_*.py` using `pytest`, and keep fixtures small.
+with valid `IPINFO_TOKEN` and `CITY_WHITELIST` values, plus optional `ALLOWED_IPS`, `BLOCKED_IPS`, `COUNTRY_CODES`,
+`ASN_DENYLIST`, and `ASN_ALLOWLIST` when testing filter behavior, and verify the rendered output at
+`outputs/nftables.conf`. Keep tests under `tests/test_*.py` using `pytest`, and keep fixtures small.
 
 ## Commit & Pull Request Guidelines
 

@@ -5,7 +5,9 @@ import pytest
 from settings import Settings
 
 
-@pytest.mark.parametrize("field_name", ["allowed_ips", "blocked_ips", "asn_denylist", "city_whitelist"])
+@pytest.mark.parametrize(
+    "field_name", ["allowed_ips", "blocked_ips", "asn_denylist", "asn_allowlist", "city_whitelist"]
+)
 @pytest.mark.parametrize("line_ending", ["\r\n", "\r", "\n"])
 def test_multivalue_settings_support_commas_newlines_and_comments(field_name: str, line_ending: str) -> None:
     value = line_ending.join(
@@ -22,7 +24,7 @@ def test_multivalue_settings_support_commas_newlines_and_comments(field_name: st
     assert getattr(settings, field_name) == "first,second,third,fourth"
 
 
-@pytest.mark.parametrize("field_name", ["allowed_ips", "blocked_ips", "asn_denylist"])
+@pytest.mark.parametrize("field_name", ["allowed_ips", "blocked_ips", "asn_denylist", "asn_allowlist"])
 def test_optional_multivalue_settings_normalize_comment_only_values_to_empty(field_name: str) -> None:
     settings = Settings.model_validate({field_name: "  # first comment\r\n\n\t# second comment\r"})
 

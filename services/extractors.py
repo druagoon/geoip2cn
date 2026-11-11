@@ -25,25 +25,35 @@ def validate_provider_rule_compatibility(provider: GeoIPProvider, rule: RecordRu
 
 def extract_ipv4_networks(provider: GeoIPProvider, rule: RecordRule) -> set[ipaddress.IPv4Network]:
     """Extract IPv4 networks from a provider using a rule."""
+    return extract_ipv4_networks_by_rule(provider, (rule,))[0]
+
+
+def extract_ipv4_networks_by_rule(
+    provider: GeoIPProvider, rules: tuple[RecordRule, ...]
+) -> tuple[set[ipaddress.IPv4Network], ...]:
+    """Extract independent rule results with one database refresh and record scan."""
     started_at = time.perf_counter()
-    validate_provider_rule_compatibility(provider, rule)
+    for rule in rules:
+        validate_provider_rule_compatibility(provider, rule)
     provider.ensure_database()
-    networks: set[ipaddress.IPv4Network] = set()
-    match_record = rule.match
-    add_network = networks.add
+    results: tuple[set[ipaddress.IPv4Network], ...] = tuple(set() for _ in rules)
+    matchers = tuple((rule.match, networks.add) for rule, networks in zip(rules, results, strict=True))
     for record in provider.iter_records():
         network = record.network
-        if isinstance(network, ipaddress.IPv4Network) and match_record(record):
-            add_network(network)
+        if not isinstance(network, ipaddress.IPv4Network):
+            continue
+        for match_record, add_network in matchers:
+            if match_record(record):
+                add_network(network)
 
     elapsed_seconds = time.perf_counter() - started_at
     logger.info(
-        "Extraction result: provider=%s ipv4_networks=%d elapsed_seconds=%.3f",
+        "Extraction result: provider=%s ipv4_networks_by_rule=%s elapsed_seconds=%.3f",
         provider.name,
-        len(networks),
+        [len(networks) for networks in results],
         elapsed_seconds,
     )
-    return networks
+    return results
 
 
 def extract_blacklist_networks(provider: GeoIPProvider, rule: RecordRule) -> set[ipaddress.IPv4Network]:

@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     allowed_ips: str = ""
     blocked_ips: str = ""
     asn_denylist: str = ""
+    asn_allowlist: str = ""
     city_whitelist: str = ""
     country_codes: str = ""
     ipinfo_token: str | None = None
@@ -53,6 +54,7 @@ class Settings(BaseSettings):
         "allowed_ips",
         "blocked_ips",
         "asn_denylist",
+        "asn_allowlist",
         "city_whitelist",
         mode="before",
     )

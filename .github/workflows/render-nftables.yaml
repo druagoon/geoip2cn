@@ -26,6 +26,7 @@ jobs:
           ALLOWED_IPS: ${{ vars.ALLOWED_IPS }}
           BLOCKED_IPS: ${{ vars.BLOCKED_IPS }}
           ASN_DENYLIST: ${{ vars.ASN_DENYLIST }}
+          ASN_ALLOWLIST: ${{ vars.ASN_ALLOWLIST }}
           CITY_WHITELIST: ${{ vars.CITY_WHITELIST }}
           COUNTRY_CODES: ${{ vars.COUNTRY_CODES }}
         run: make run

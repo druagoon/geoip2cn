@@ -290,3 +290,36 @@ def test_pipeline_merges_ipinfo_asns_and_cities_into_rendered_whitelist(
     assert "203.0.113.0/24" not in whitelist_set
     assert "2001:db8" not in whitelist_set
     assert rendered.index("ip saddr @geoip_blacklist_v4 drop") < rendered.index("ip saddr != @geoip_whitelist_v4 drop")
+
+
+def test_nftables_template_preserves_other_tables_and_allows_docker_forwarding(tmp_path: Path) -> None:
+    renderer = NftablesRenderer(TEMPLATE_DIR, tmp_path / "nftables.conf")
+
+    rendered = renderer.render(
+        blacklist_v4={ipaddress.IPv4Network("192.0.2.0/24")},
+        whitelist_v4={ipaddress.IPv4Network("198.51.100.0/24")},
+        allowed_ips={ipaddress.IPv4Network("203.0.113.1/32")},
+        blocked_ips={ipaddress.IPv4Network("203.0.113.2/32")},
+    )
+
+    assert "flush ruleset" not in rendered
+    assert "table inet vps\ndelete table inet vps\n\ntable inet vps {" in rendered
+
+    docker_inbound_chain = rendered.split("chain docker_inbound {", 1)[1].split("\n\t}", 1)[0]
+    assert docker_inbound_chain.index("ip saddr @allowed_ips accept") < docker_inbound_chain.index(
+        "ip saddr @blocked_ips drop"
+    )
+    assert docker_inbound_chain.index("ip saddr @blocked_ips drop") < docker_inbound_chain.index(
+        "ip saddr @geoip_blacklist_v4 drop"
+    )
+    assert docker_inbound_chain.index("ip saddr @geoip_blacklist_v4 drop") < docker_inbound_chain.index(
+        "ip saddr @geoip_whitelist_v4 accept"
+    )
+
+    forward_chain = rendered.split("chain forward {", 1)[1].split("\n\t}", 1)[0]
+    assert "ct state established,related accept" in forward_chain
+    assert "ct state invalid drop" in forward_chain
+    assert 'iifname "docker0" accept' in forward_chain
+    assert 'iifname "br-*" accept' in forward_chain
+    assert 'oifname "docker0" ct status dnat jump docker_inbound' in forward_chain
+    assert 'oifname "br-*" ct status dnat jump docker_inbound' in forward_chain
